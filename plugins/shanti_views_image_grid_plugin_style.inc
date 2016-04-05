@@ -20,7 +20,7 @@ class shanti_views_image_grid_plugin_style extends views_plugin_style {
     $options['shanti_views_image_grid']['expanded_fields'] = array('default' => array());
     $options['type'] = array('default' => 'ul');
     $options['class'] = array('default' => '');
-    $options['wrapper_class'] = array('default' => 'item-list');
+    $options['wrapper_class'] = array('default' => 'og-grid-item-list');
 
     return $options;
   }
