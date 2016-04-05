@@ -52,6 +52,11 @@
   overflow: hidden;
 }
 
+.panel-panel.col-lg-12 .og-expander{ 
+    left: -15%;
+    width: 130%;
+}
+
 .og-expander-inner {
   background: #303030;
   padding: 2.5rem 5.5rem;

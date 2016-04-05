@@ -71,6 +71,7 @@ function template_preprocess_shanti_views_image_grid_list(&$vars) {
     drupal_add_css(drupal_get_path('module', 'shanti_views_image_grid')  . '/css/grid-components.css');
     drupal_add_css(drupal_get_path('module', 'shanti_views_image_grid') . '/css/photoswipe.css');
     drupal_add_css(drupal_get_path('module', 'shanti_views_image_grid') . '/css/pswp-default-skin.css');
+    drupal_add_css(drupal_get_path('module', 'shanti_views_image_grid') . '/css/shanti-views-image-grid.css');
 
   $id_field = $handler->options['shanti_views_image_grid']['id_field'];
   $view = $vars['view'];
