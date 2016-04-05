@@ -34,8 +34,8 @@
     <?php 
         $field_order = array();
         foreach ($fields as $id => $field) {
-            $attname = (empty($field->label)) ? $id : $field->label;
-            $attval = (empty($field->content)) ? "" : $field->content;
+            $attname = (empty($field->label)) ? $id : strip_tags($field->label);
+            $attval = (empty($field->content)) ? "" : strip_tags($field->content);
             if (!empty($attval) > 0) { 
                 print " data-{$attname}=\"{$attval}\"";
                 $field_order[] = $attname;
