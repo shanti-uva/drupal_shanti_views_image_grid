@@ -119,7 +119,9 @@ function template_preprocess_shanti_views_image_grid_list(&$vars) {
       $uri = $row->_field_data['fid']['entity']->uri;
       $uri = str_replace("sharedshelf://", "public://media-sharedshelf/", $uri) . ".jpg"; // Normalize Sharedshelf uri to Drupal standard uri.
       $vars['row']['fid'] = $row->fid;
-      $vars['row']['title'] = $row->file_managed_filename;
+      $vars['row']['title'] = t("Untitled");
+      if (!empty($row->title)) { $vars['row']['title'] = $row->title; }
+      if (!empty($row->file_managed_filename)) { $vars['row']['title'] = $row->file_managed_filename; }
       $vars['row']['href'] = $base_path . drupal_get_path_alias("file/{$vars['row']['fid']}");
       // TODO: Need to include the following style definitions in this module
       $vars['row']['img_url'] = image_style_url( 'media_thumbnail', $uri);
