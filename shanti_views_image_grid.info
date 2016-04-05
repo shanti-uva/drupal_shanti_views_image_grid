@@ -1,0 +1,13 @@
+name = Shanti Views Image Grid
+description = Views style that displays a Pintrest-style grid of thumbnails with expandable previews and highlight box popup.
+package = SHANTI
+core = 7.x
+
+dependencies[] = views
+dependencies[] = jquery_update
+
+files[] = plugins/shanti_views_image_grid_plugin_style.inc
+version = "7.x-1.0"
+core = "7.x"
+project = "shanti_views_image_grid"
+

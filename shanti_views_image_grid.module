@@ -1,0 +1,146 @@
+<?php
+/**
+ * @file
+ * Views Elastic Grid module.
+ */
+
+/**
+ * Implements hook_views_api().
+ */
+function shanti_views_image_grid_views_api() {
+  return array(
+    'api' => 3,
+  );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function shanti_views_image_grid_theme($existing, $type, $theme, $path) {
+  return array(
+    'shanti_views_image_grid_fields' => array(
+      'template' => 'shanti-views-image-grid-fields',
+      'variables' => array('view' => NULL),
+    ),
+    'shanti_views_image_grid_list' => array(
+      'template' => 'shanti-views-image-grid-list',
+      'variables' => array('view' => NULL),
+    ),
+  );
+}
+
+$done = FALSE;
+/**
+ * Display the view as an HTML list element
+ */
+function template_preprocess_shanti_views_image_grid_list(&$vars) {
+  global $base_path;
+  // JS settings for grid.js
+  $view = $vars['view'];
+  $countsettings = array(
+        'shanti_views_image_grid' => array(
+            'total_items' => $view->query->pager->total_items,
+            'items_per_page' => $view->query->pager->options['items_per_page'],
+            'page_number' => $view->query->pager->current_page,
+            'item_count' => count($view->result),
+        ),
+  );
+  drupal_add_js($countsettings, 'setting');
+  $handler  = $vars['view']->style_plugin;
+  $class = explode(' ', $handler->options['class']);
+  $class = array_map('views_clean_css_identifier', $class);
+
+  $wrapper_class = explode(' ', $handler->options['wrapper_class']);
+  $wrapper_class = array_map('views_clean_css_identifier', $wrapper_class);
+
+  $vars['class'] = implode(' ', $class);
+  $vars['wrapper_class'] = implode(' ', $wrapper_class);
+  $vars['wrapper_prefix'] = '';
+  $vars['wrapper_suffix'] = '';
+  if ($vars['wrapper_class']) {
+    $vars['wrapper_prefix'] = '<div class="' . $vars['wrapper_class'] . '">';
+    $vars['wrapper_suffix'] = '</div>';
+  }
+
+  if ($vars['class']) {
+    $vars['list_type_prefix'] = '<' . $handler->options['type'] . ' class="' . $vars['class'] . '">';
+  }
+  $vars['list_class'] = 'og-grid';
+  
+    // Load CSS from Sarvaka Images theme
+    drupal_add_css(drupal_get_path('module', 'shanti_views_image_grid')  . '/css/grid-components.css');
+    drupal_add_css(drupal_get_path('module', 'shanti_views_image_grid') . '/css/photoswipe.css');
+    drupal_add_css(drupal_get_path('module', 'shanti_views_image_grid') . '/css/pswp-default-skin.css');
+
+  $id_field = $handler->options['shanti_views_image_grid']['id_field'];
+  $view = $vars['view'];
+  $rows = $vars['rows'];
+  $style = $view->style_plugin;
+  $options = $style->options;
+
+  $vars['rows'] = array();
+  $vars['options']['default_field_elements'] = FALSE;
+
+  $original_fields = $vars['view']->field;
+  $default_row_class = isset($options['default_row_class']) ? $options['default_row_class'] : FALSE;
+  $row_class_special = isset($options['row_class_special']) ? $options['row_class_special'] : FALSE;
+
+  // Set up striping values.
+  $count = 0;
+  $max = count($rows);
+  foreach ($rows as $i => $row) {
+    $count++;
+    if ($default_row_class) {
+      $vars['classes'][$i][] = 'views-row';
+      $vars['classes'][$i][] = 'views-row-' . $count;
+    }
+    if ($row_class_special) {
+      $vars['classes'][$i][] = 'views-row-' . ($count % 2 ? 'odd' : 'even');
+      if ($count == 1) {
+        $vars['classes'][$i][] = 'views-row-first';
+      }
+      if ($count == $max) {
+        $vars['classes'][$i][] = 'views-row-last';
+      }
+    }
+
+    if ($row_class = $view->style_plugin->get_row_class($i)) {
+      $vars['classes'][$i][] = $row_class;
+    }
+
+    // Flatten the classes to a string for each row for the template file.
+    $vars['rows'][$i]['classes'] = isset($vars['classes'][$i]) ? implode(' ', $vars['classes'][$i]) : '';
+    $vars['rows'][$i]['id'] = !empty($id_field) ? preg_replace('/[^a-z0-9_]+/', '-', $row->{$id_field}) : ($i + 1);
+    $vars['view']->row_index = $i;
+
+      // Use view fields preprocessing
+      template_preprocess_views_view_fields($vars);
+      $uri = $row->_field_data['fid']['entity']->uri;
+      $uri = str_replace("sharedshelf://", "public://media-sharedshelf/", $uri) . ".jpg"; // Normalize Sharedshelf uri to Drupal standard uri.
+      $vars['row']['fid'] = $row->fid;
+      $vars['row']['title'] = $row->file_managed_filename;
+      $vars['row']['href'] = $base_path . drupal_get_path_alias("file/{$vars['row']['fid']}");
+      // TODO: Need to include the following style definitions in this module
+      $vars['row']['img_url'] = image_style_url( 'media_thumbnail', $uri);
+      $vars['row']['large_url'] = image_style_url( 'media_large', $uri);
+      $huge_path = image_style_url( 'media_lightbox_large', $uri);
+      // Get dimensions for huge image and append to url with "::" separators (url::width::height)
+        $hugepts = explode('/sites/', $huge_path);
+        $hugepts = explode('?', $hugepts[1]);
+        $huge_info = image_get_info('sites/' . $hugepts[0]);
+        $huge_path .= '::' . $huge_info['width'] . '::' . $huge_info['height']; 
+        $vars['row']['huge_url']  = $huge_path;
+      $vars['rows'][$i]['#markup'] = theme('shanti_views_image_grid_fields', $vars); 
+    
+  }
+  
+  $dom_id_class = 'view-dom-id-' . $vars['view']->dom_id;
+  drupal_add_js(array('shanti_views_image_grid' => array($vars['view']->dom_id => '.' . $dom_id_class . ' ul.og-grid')), 'setting');
+    
+    // Load JavaScript (from subtheme)
+    drupal_add_js(drupal_get_path('module', 'shanti_views_image_grid') . '/js/grid.js', array('group'=>JS_LIBRARY, 'weight'=>9990));
+    drupal_add_js(drupal_get_path('module', 'shanti_views_image_grid') . '/js/jquery.row-grid.js', array('group'=>JS_LIBRARY, 'weight'=>9980));
+    drupal_add_js(drupal_get_path('module', 'shanti_views_image_grid') . '/js/photoswipe.js', array('group'=>JS_LIBRARY, 'weight'=>9970));
+    drupal_add_js(drupal_get_path('module', 'shanti_views_image_grid') . '/js/photoswipe-ui-default.js', array('group'=>JS_LIBRARY, 'weight'=>9960));
+    drupal_add_js(drupal_get_path('module', 'shanti_views_image_grid') . '/js/jquery.actual.min.js', array('group'=>JS_LIBRARY, 'weight'=>9950));
+}
